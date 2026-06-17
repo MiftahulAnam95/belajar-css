@@ -218,21 +218,171 @@ window.CSSLabApp = (() => {
 
   const lessonHref = (id) => `${rootPath}materi/${id}.html`;
 
+  const getLessonPhase = (lessonIndex) =>
+    data.learningPhases.find((phase) => lessonIndex >= phase.lessonStart && lessonIndex <= phase.lessonEnd) || data.learningPhases[0];
+
+  const getPhaseLessons = (phase) => data.lessons.slice(phase.lessonStart, phase.lessonEnd + 1);
+
+  const getPhaseProgress = (phase) => {
+    const phaseLessons = getPhaseLessons(phase);
+    const completed = phaseLessons.filter((lesson) => progress.state.completedLessons.includes(lesson.id)).length;
+    return {
+      completed,
+      total: phaseLessons.length,
+      percentage: phaseLessons.length ? Math.round((completed / phaseLessons.length) * 100) : 0
+    };
+  };
+
+  const getNextLesson = () => data.lessons.find((lesson) => !progress.state.completedLessons.includes(lesson.id));
+
+  const renderStarterFlow = () => {
+    const target = getElement("starterFlow");
+    if (!target) return;
+    target.innerHTML = data.starterFlow
+      .map(
+        (item, index) => `
+          <article class="starter-step">
+            <span class="starter-step-number">${index + 1}</span>
+            <i class="bi ${item.icon}"></i>
+            <div>
+              <h3>${escapeHTML(item.title)}</h3>
+              <p>${escapeHTML(item.description)}</p>
+            </div>
+          </article>`
+      )
+      .join("");
+  };
+
+  const renderPhaseMap = (targetId = "phaseMap") => {
+    const target = getElement(targetId);
+    if (!target) return;
+    target.innerHTML = data.learningPhases
+      .map((phase) => {
+        const phaseLessons = getPhaseLessons(phase);
+        const firstIncomplete = phaseLessons.find((lesson) => !progress.state.completedLessons.includes(lesson.id)) || phaseLessons[0];
+        const phaseProgress = getPhaseProgress(phase);
+        const completed = phaseProgress.completed === phaseProgress.total;
+        return `
+          <article class="phase-card ${completed ? "completed" : ""}">
+            <div class="phase-card-top">
+              <span class="phase-icon"><i class="bi ${phase.icon}"></i></span>
+              <span class="mini-label">${escapeHTML(phase.label)}</span>
+            </div>
+            <h3>${escapeHTML(phase.title)}</h3>
+            <p>${escapeHTML(phase.description)}</p>
+            <div class="phase-outcome"><strong>Hasil akhir:</strong> ${escapeHTML(phase.outcome)}</div>
+            <div class="phase-progress" aria-label="Progress ${escapeHTML(phase.title)}">
+              <span style="width: ${phaseProgress.percentage}%"></span>
+            </div>
+            <div class="phase-card-bottom">
+              <span>${phaseProgress.completed}/${phaseProgress.total} selesai</span>
+              <a href="${lessonHref(firstIncomplete.id)}">${completed ? "Ulangi fase" : "Mulai fase"}</a>
+            </div>
+          </article>`;
+      })
+      .join("");
+  };
+
+  const renderHomeDemo = (id = data.homeDemos[0]?.id) => {
+    const tabs = getElement("homeDemoTabs");
+    const code = getElement("homeDemoCode");
+    const preview = getElement("homeDemoPreview");
+    const explain = getElement("homeDemoExplain");
+    const task = getElement("homeDemoTask");
+    if (!tabs || !code || !preview || !explain || !task) return;
+
+    const demo = data.homeDemos.find((item) => item.id === id) || data.homeDemos[0];
+    tabs.innerHTML = data.homeDemos
+      .map(
+        (item) => `
+          <button class="demo-tab ${item.id === demo.id ? "active" : ""}" type="button" data-home-demo="${item.id}">
+            ${escapeHTML(item.label)}
+          </button>`
+      )
+      .join("");
+    code.innerHTML = renderCodeBlock(demo.css, "style.css");
+    preview.srcdoc = buildPreviewDocument(demo.html, demo.css);
+    explain.innerHTML = `<strong>${escapeHTML(demo.title)}</strong><span>${escapeHTML(demo.explanation)}</span>`;
+    task.innerHTML = `<i class="bi bi-pencil-square"></i><span>${escapeHTML(demo.task)}</span>`;
+  };
+
+  const renderHomeDashboard = () => {
+    const nextLesson = getNextLesson() || data.lessons[0];
+    const completed = progress.state.completedLessons.length;
+    const percentage = progress.getTotalProgress();
+    const homeProgressPercent = getElement("homeProgressPercent");
+    const homeProgressBar = getElement("homeProgressBar");
+    const homeNextLessonTitle = getElement("homeNextLessonTitle");
+    const homeNextLessonMeta = getElement("homeNextLessonMeta");
+    const homeContinueLink = getElement("homeContinueLink");
+    const homeCompletedCount = getElement("homeCompletedCount");
+    const homeCurrentPhase = getElement("homeCurrentPhase");
+
+    if (homeProgressPercent) homeProgressPercent.textContent = `${percentage}%`;
+    if (homeProgressBar) homeProgressBar.style.width = `${percentage}%`;
+    if (homeNextLessonTitle) homeNextLessonTitle.textContent = nextLesson.title;
+    if (homeNextLessonMeta) {
+      const nextIndex = data.lessons.findIndex((lesson) => lesson.id === nextLesson.id);
+      const phase = getLessonPhase(nextIndex);
+      homeNextLessonMeta.textContent = `${phase.title} - ${nextLesson.duration}`;
+    }
+    if (homeContinueLink) homeContinueLink.href = lessonHref(nextLesson.id);
+    if (homeCompletedCount) homeCompletedCount.textContent = `${completed}/${data.lessons.length}`;
+    if (homeCurrentPhase) {
+      const nextIndex = data.lessons.findIndex((lesson) => lesson.id === nextLesson.id);
+      homeCurrentPhase.textContent = getLessonPhase(nextIndex).title;
+    }
+  };
+
+  const renderLessonNavigation = (lessonIndex, placement = "top") => {
+    const previousLesson = data.lessons[lessonIndex - 1];
+    const nextLesson = data.lessons[lessonIndex + 1];
+    const previousHref = previousLesson ? lessonHref(previousLesson.id) : `${rootPath}materi.html`;
+    const nextHref = nextLesson ? lessonHref(nextLesson.id) : `${rootPath}materi.html`;
+    const previousTitle = previousLesson ? previousLesson.title : "Kembali ke daftar materi";
+    const nextTitle = nextLesson ? nextLesson.title : "Kembali ke daftar materi";
+
+    return `
+      <nav class="lesson-nav lesson-nav-${placement}" aria-label="Navigasi materi">
+        <a class="lesson-nav-link lesson-nav-prev" href="${previousHref}">
+          <i class="bi bi-arrow-left"></i>
+          <span>
+            <small>${previousLesson ? "Materi sebelumnya" : "Daftar materi"}</small>
+            <strong>${escapeHTML(previousTitle)}</strong>
+          </span>
+        </a>
+        <a class="lesson-nav-link lesson-nav-next" href="${nextHref}">
+          <span>
+            <small>${nextLesson ? "Materi berikutnya" : "Daftar materi"}</small>
+            <strong>${escapeHTML(nextTitle)}</strong>
+          </span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </nav>`;
+  };
+
   const renderLessons = () => {
     const lessonGrid = getElement("lessonGrid");
     if (!lessonGrid) return;
     const completed = progress.state.completedLessons;
     lessonGrid.innerHTML = data.lessons
-      .map(
-        (item, index) => `
+      .map((item, index) => {
+        const phase = getLessonPhase(index);
+        const done = completed.includes(item.id);
+        return `
           <a class="lesson-card ${completed.includes(item.id) ? "completed" : ""}" href="${lessonHref(item.id)}" data-open-lesson="${item.id}">
-          ${completed.includes(item.id) ? '<i class="bi bi-check-circle-fill complete-mark"></i>' : ""}
-          <span class="lesson-icon"><i class="bi ${item.icon}"></i></span>
+            ${done ? '<i class="bi bi-check-circle-fill complete-mark"></i>' : ""}
+            <span class="lesson-stage">${escapeHTML(phase.title)}</span>
+            <span class="lesson-icon"><i class="bi ${item.icon}"></i></span>
             <span class="lesson-number d-block mt-3">Materi ${String(index + 1).padStart(2, "0")}</span>
             <h3>${escapeHTML(item.title)}</h3>
-            <p><i class="bi bi-clock"></i> ${escapeHTML(item.duration)}</p>
-          </a>`
-      )
+            <p class="lesson-card-summary">${escapeHTML(item.overview)}</p>
+            <div class="lesson-card-footer">
+              <span><i class="bi bi-clock"></i> ${escapeHTML(item.duration)}</span>
+              <span><i class="bi ${done ? "bi-check-circle-fill" : "bi-pencil-square"}"></i> ${done ? "Selesai" : "Latihan + quiz"}</span>
+            </div>
+          </a>`;
+      })
       .join("");
     const roadmapCompleted = getElement("roadmapCompleted");
     if (roadmapCompleted) roadmapCompleted.textContent = `${completed.length}/${data.lessons.length}`;
@@ -269,6 +419,45 @@ window.CSSLabApp = (() => {
       </div>`;
   };
 
+  const renderLessonLearningLoop = (item) => `
+    <section class="detail-block learning-loop-block">
+      <h3><i class="bi bi-signpost-2"></i> Cara belajar materi ini</h3>
+      <div class="learning-loop-grid">
+        <article>
+          <span>1</span>
+          <strong>Pahami masalahnya</strong>
+          <p>${escapeHTML(item.problem)}</p>
+        </article>
+        <article>
+          <span>2</span>
+          <strong>Lihat perubahan visual</strong>
+          <p>Perhatikan aturan CSS mana yang mengubah warna, jarak, ukuran, atau layout.</p>
+        </article>
+        <article>
+          <span>3</span>
+          <strong>Ubah satu property</strong>
+          <p>${escapeHTML(item.exercise)}</p>
+        </article>
+        <article>
+          <span>4</span>
+          <strong>Cek dengan bahasa sendiri</strong>
+          <p>${escapeHTML(item.checkpoint)}</p>
+        </article>
+      </div>
+    </section>`;
+
+  const renderLessonCodeBridge = (item) => `
+    <div class="code-bridge-grid">
+      <div>
+        <div class="bridge-label"><i class="bi bi-keyboard"></i> Yang kamu tulis</div>
+        ${renderLessonCodeBlocks(item)}
+      </div>
+      <div>
+        <div class="bridge-label"><i class="bi bi-window"></i> Yang browser tampilkan</div>
+        ${renderLessonCodePreview(item)}
+      </div>
+    </div>`;
+
   const renderLessonDetail = (id) => {
     const item = data.lessons.find((lesson) => lesson.id === id);
     const lessonDetail = getElement("lessonDetail");
@@ -276,13 +465,14 @@ window.CSSLabApp = (() => {
     progress.setLastLesson(id);
     const lessonIndex = data.lessons.findIndex((lesson) => lesson.id === id);
     const isCompleted = progress.state.completedLessons.includes(id);
+    const phase = getLessonPhase(lessonIndex);
 
     lessonDetail.innerHTML = `
       <article class="lesson-detail-card">
         <header class="lesson-detail-head">
           <div class="d-flex justify-content-between gap-3">
             <div>
-              <span class="eyebrow">Materi ${String(lessonIndex + 1).padStart(2, "0")} &middot; ${escapeHTML(item.duration)}</span>
+              <span class="eyebrow">Materi ${String(lessonIndex + 1).padStart(2, "0")} &middot; ${escapeHTML(phase.title)} &middot; ${escapeHTML(item.duration)}</span>
               <h2 class="mt-2 mb-1">${escapeHTML(item.title)}</h2>
               <p class="mb-0">${escapeHTML(item.goal)}</p>
             </div>
@@ -290,6 +480,7 @@ window.CSSLabApp = (() => {
               <i class="bi bi-arrow-left"></i>
             </button>
           </div>
+          ${renderLessonNavigation(lessonIndex, "top")}
         </header>
         <div class="lesson-detail-body">
           <section class="detail-block beginner-start-block">
@@ -301,6 +492,7 @@ window.CSSLabApp = (() => {
               <p class="mb-0">${escapeHTML(item.overview)}</p>
             </div>
           </section>
+          ${renderLessonLearningLoop(item)}
           <section class="detail-block">
             <h3><i class="bi bi-flag"></i> Tujuan belajar</h3>
             <p class="mb-0">${escapeHTML(item.goal)}</p>
@@ -339,8 +531,8 @@ window.CSSLabApp = (() => {
           </section>
           <section class="detail-block">
             <h3><i class="bi bi-code-square"></i> Contoh kode HTML + CSS</h3>
-            ${renderLessonCodeBlocks(item)}
-            ${renderLessonCodePreview(item)}
+            <p class="mini-guidance">Baca dari kiri ke kanan: HTML memberi isi, CSS memberi tampilan, preview menunjukkan hasil akhirnya.</p>
+            ${renderLessonCodeBridge(item)}
           </section>
           <section class="detail-block">
             <h3><i class="bi bi-list-ol"></i> Penjelasan kode per baris</h3>
@@ -393,6 +585,7 @@ window.CSSLabApp = (() => {
             </div>
             ${isCompleted ? getNextLearningPanel(item.id) : '<div id="nextLearningPanel"></div>'}
           </section>
+          ${renderLessonNavigation(lessonIndex, "bottom")}
         </div>
       </article>`;
 
@@ -768,6 +961,9 @@ window.CSSLabApp = (() => {
     const roadmapCompleted = getElement("roadmapCompleted");
 
     progress.unlockBadges();
+    renderHomeDashboard();
+    renderPhaseMap("phaseMap");
+    renderPhaseMap("homePhaseMap");
 
     if (progressPercent) progressPercent.textContent = `${percentage}%`;
     if (mainProgressBar) {
@@ -1759,6 +1955,12 @@ window.CSSLabApp = (() => {
   };
 
   const handleClick = (event) => {
+    const homeDemoButton = event.target.closest("[data-home-demo]");
+    if (homeDemoButton) {
+      renderHomeDemo(homeDemoButton.dataset.homeDemo);
+      return;
+    }
+
     const copyButton = event.target.closest("[data-copy-code]");
     if (copyButton) {
       copyText(decodeURIComponent(copyButton.dataset.copyCode))
@@ -1947,6 +2149,10 @@ window.CSSLabApp = (() => {
     document.body.classList.toggle("dark-mode", progress.state.darkMode);
     updateThemeToggle();
     progress.unlockBadges();
+    renderStarterFlow();
+    renderPhaseMap("phaseMap");
+    renderPhaseMap("homePhaseMap");
+    renderHomeDemo();
     renderLessons();
     renderQuiz();
     renderRecallChallenge();

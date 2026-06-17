@@ -1849,5 +1849,107 @@ window.CSSLabData = (() => ({
       "title": "Konsisten",
       "icon": "bi-lightning-charge"
     }
+  ],
+  "learningPhases": [
+    {
+      "id": "fondasi-css",
+      "icon": "bi-compass",
+      "label": "Materi 01-04",
+      "title": "Kenali Peran CSS",
+      "description": "Pahami hubungan HTML dan CSS, cara menghubungkan file, selector, warna, dan background.",
+      "outcome": "Kamu tahu bagian mana yang ditulis di HTML, bagian mana yang diatur CSS, dan kenapa style bisa muncul di browser.",
+      "lessonStart": 0,
+      "lessonEnd": 3
+    },
+    {
+      "id": "ruang-dan-teks",
+      "icon": "bi-bounding-box",
+      "label": "Materi 05-09",
+      "title": "Ruang, Teks, dan Kotak",
+      "description": "Latih typography, box model, margin, padding, radius, shadow, serta display block-inline.",
+      "outcome": "Kamu bisa membuat teks lebih nyaman dibaca dan kotak halaman terasa rapi.",
+      "lessonStart": 4,
+      "lessonEnd": 8
+    },
+    {
+      "id": "layout",
+      "icon": "bi-grid-3x3-gap",
+      "label": "Materi 10-15",
+      "title": "Layout Halaman",
+      "description": "Belajar flexbox, grid, position, responsive media query, pseudo-class, dan styling form.",
+      "outcome": "Kamu bisa menyusun card, navbar, section, dan form yang tetap nyaman di desktop maupun mobile.",
+      "lessonStart": 9,
+      "lessonEnd": 14
+    },
+    {
+      "id": "siap-project",
+      "icon": "bi-rocket-takeoff",
+      "label": "Materi 16-20",
+      "title": "Rapikan Project",
+      "description": "Pahami cascade, specificity, variable CSS, layout final, debugging, dan persiapan publish.",
+      "outcome": "Kamu siap memberi style pada project HTML sendiri dan memperbaiki CSS yang tidak bekerja.",
+      "lessonStart": 15,
+      "lessonEnd": 19
+    }
+  ],
+  "starterFlow": [
+    {
+      "icon": "bi-eye",
+      "title": "Lihat perubahan visual",
+      "description": "CSS lebih mudah dipahami saat kamu melihat warna, jarak, atau layout berubah langsung di preview."
+    },
+    {
+      "icon": "bi-pencil-square",
+      "title": "Ubah satu property",
+      "description": "Jangan ubah banyak aturan sekaligus. Ganti satu property agar tahu efeknya."
+    },
+    {
+      "icon": "bi-palette",
+      "title": "Bandingkan sebelum-sesudah",
+      "description": "Amati elemen mana yang berubah dan selector mana yang memilihnya."
+    },
+    {
+      "icon": "bi-bug",
+      "title": "Debug dengan urutan",
+      "description": "Cek file terhubung, selector cocok, property benar, lalu lihat apakah ada aturan yang menimpa."
+    }
+  ],
+  "homeDemos": [
+    {
+      "id": "warna",
+      "label": "Warna",
+      "title": "Mengubah warna teks",
+      "html": "<h1>Profil Rina</h1>\n<p>Saya sedang belajar CSS dari nol.</p>",
+      "css": "h1 {\n  color: #2563eb;\n}\n\np {\n  color: #475569;\n}",
+      "explanation": "Selector h1 memilih judul. Property color mengubah warna teks judul.",
+      "task": "Ganti value color pada h1 dengan warna lain, lalu lihat hasilnya."
+    },
+    {
+      "id": "spacing",
+      "label": "Spacing",
+      "title": "Memberi ruang dalam kartu",
+      "html": "<article class=\"card\">\n  <h1>Belajar CSS</h1>\n  <p>Padding membuat isi tidak menempel ke tepi.</p>\n</article>",
+      "css": ".card {\n  background: #eff6ff;\n  border: 1px solid #bfdbfe;\n  padding: 24px;\n}",
+      "explanation": "Padding memberi jarak di dalam kotak, antara isi dan garis tepi.",
+      "task": "Ubah padding menjadi 12px lalu 40px. Rasakan bedanya."
+    },
+    {
+      "id": "button",
+      "label": "Button",
+      "title": "Membuat link terasa seperti tombol",
+      "html": "<a class=\"button\" href=\"#mulai\">Mulai belajar</a>",
+      "css": ".button {\n  background: #2563eb;\n  border-radius: 8px;\n  color: white;\n  display: inline-block;\n  padding: 12px 16px;\n}",
+      "explanation": "CSS bisa mengubah link biasa menjadi tombol visual tanpa mengubah makna HTML.",
+      "task": "Ubah border-radius dan padding untuk melihat bentuk tombol berubah."
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "title": "Menyusun kartu dengan flexbox",
+      "html": "<section class=\"row\">\n  <article>Warna</article>\n  <article>Spacing</article>\n  <article>Layout</article>\n</section>",
+      "css": ".row {\n  display: flex;\n  gap: 12px;\n}\n\narticle {\n  background: #eff6ff;\n  padding: 16px;\n}",
+      "explanation": "display flex diterapkan ke pembungkus agar anak-anaknya tersusun sejajar.",
+      "task": "Ubah gap menjadi 4px lalu 24px untuk melihat jarak antar kartu."
+    }
   ]
 }))();

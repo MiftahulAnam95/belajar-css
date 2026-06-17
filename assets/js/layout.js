@@ -30,7 +30,7 @@ window.CSSLabLayout = (() => {
                 <path d="M22 37H49" fill="none" stroke="#2563eb" stroke-width="5.4" stroke-linecap="round" />
                 <path d="M22 47H41" fill="none" stroke="#06b6d4" stroke-width="5.4" stroke-linecap="round" />
                 <path d="M22 55H35" fill="none" stroke="#22c55e" stroke-width="5.4" stroke-linecap="round" />
-                <path d="M49 36L54 41L49 46" fill="none" stroke="#f97316" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M49 36L54 41L49 46" fill="none" stroke="#2563eb" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </span>
             <span class="brand-text">
@@ -72,7 +72,7 @@ window.CSSLabLayout = (() => {
         <div class="container">
           <div class="d-flex flex-column flex-lg-row justify-content-between gap-2">
             <span>CSS Beginner Lab - project belajar CSS interaktif setelah HTML.</span>
-            <span>Style belajar terinspirasi dari <a href="https://miftahulanam95.github.io/Belajar-HTML/" target="_blank" rel="noopener noreferrer">Belajar HTML</a> dan <a href="https://miftahulanam95.github.io/Belajar-Laravel/" target="_blank" rel="noopener noreferrer">Belajar Laravel</a></span>
+            <span>Dibuat untuk membantu pemula memahami CSS langkah demi langkah.</span>
           </div>
         </div>
       </footer>`;
